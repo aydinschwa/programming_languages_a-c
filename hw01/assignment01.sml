@@ -6,11 +6,11 @@
 
 (* Problem 1 *)
 fun is_older(date1: int*int*int, date2: int*int*int) = 
-  if (#1 date1) > (#1 date2)
+  if (#1 date1) < (#1 date2)
   then true
-  else if (#2 date1) > (#2 date2)
+  else if (#2 date1) < (#2 date2)
   then true
-  else if (#3 date1) > (#3 date2)
+  else if (#3 date1) < (#3 date2)
   then true
   else false
 
@@ -52,7 +52,7 @@ fun dates_in_months(date_list: (int*int*int) list, month_list: int list) =
     
 (* Problem 6 *)
 fun get_nth(strings: string list, index: int) = 
-  if index = 0
+  if index-1 = 0
   then hd strings
   else get_nth((tl strings), index-1)
 
@@ -67,7 +67,7 @@ fun date_to_string(date: (int*int*int)) =
                          "August", "September", "October", "November", "December"]
     val ans = ""
   in
-    get_nth(months_list, month-1)^" "^Int.toString(day)^", "^Int.toString(year)
+    get_nth(months_list, month)^" "^Int.toString(day)^", "^Int.toString(year)
   end
 
 
@@ -75,23 +75,17 @@ fun date_to_string(date: (int*int*int)) =
 fun number_before_reaching_sum(sum: int, num_list: int list) = 
   if sum - (hd num_list) <= 0
   then 0
-  else (hd num_list) + number_before_reaching_sum(sum - (hd num_list), (tl
+  else 1 + number_before_reaching_sum(sum - (hd num_list), (tl
   num_list))
 
 
 (* Problem 9 *)
 fun what_month(day: int) = 
   let
-    fun subtract_days(ans: int, days_per_month: int list) =
-      if ans = 0
-      then 1
-      else 1 + subtract_days(ans - (hd days_per_month), (tl days_per_month))
     val days_per_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    val ans = number_before_reaching_sum(day, days_per_month)
-    in
-      subtract_days(ans, days_per_month)
-    end
-
+  in
+    number_before_reaching_sum(day, days_per_month)+1
+  end
 
 (* Problem 10 *)
 fun month_range(day1: int, day2: int) = 
