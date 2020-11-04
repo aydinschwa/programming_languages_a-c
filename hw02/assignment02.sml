@@ -6,17 +6,27 @@
 fun same_string(s1 : string, s2 : string) =
     s1 = s2
 
-(* put your solutions for problem 1 here *)
-(* Problem 1 *) 
-(* Write a function all_except_option, which takes a string and a string list.
-* Return NONE if the string is not in the list, else return SOME lst where lst
-* is identical to the argument list except the string is not in it. You may
-* assume the string is in the list at most once. Use same_string, provided to
-* you, to compare strings. Sample solution is around 8 lines. *)
-fun all_except_option(str: string, str_list: string list) = 
-  if null str_list
-  then NONE
-  else 
+
+(* Problem 1a *) 
+fun all_except_option(name, lon) = 
+  case lon of
+       [] => NONE
+     | lname::tl => if same_string(lname, name)
+                    then SOME tl
+                    else case all_except_option(name, tl) of
+                              NONE => NONE
+                            | SOME nm => SOME(lname::nm)
+
+
+(* Problem 1b *)
+fun get_substitutions1(lolon, name) = 
+  case lolon of
+       [] => []
+    |  lon::tl => let val nlist = all_except_option(name, lon)
+                  in case nlist of
+                          NONE => get_substitutions1(tl, name)
+                        | SOME nlist => nlist@get_substitutions1(tl, name)
+                  end
 
 
 (* you may assume that Num is always used with values 2, 3, ..., 10
@@ -31,3 +41,4 @@ datatype move = Discard of card | Draw
 exception IllegalMove
 
 (* put your solutions for problem 2 here *)
+
