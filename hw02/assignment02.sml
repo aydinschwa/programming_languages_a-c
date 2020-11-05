@@ -124,9 +124,10 @@ fun score(cs, goal) =
       val sgg = sum > goal
   in 
     case (sgg, same_col) of
-         (true, true)  => (3*(sum-goal)) div 2
-       | (true, false) => (3*(sum-goal))
-       |  _ => goal-sum
+         (true, true)   => (3*(sum-goal)) div 2
+       | (true, false)  => (3*(sum-goal))
+       | (false, true)  => (goal-sum) div 2
+       | (false, false) => goal-sum
 
   end
 
@@ -138,8 +139,25 @@ fun score(cs, goal) =
 * all of) the moves in the move list in order. Use a locally defined recursive
 * helper function that takes several arguments that together represent the
 * current state of the game.*)
-fun officiate(cs, moves, goal) = 
+fun officiate(cs, moves, goal) =
 
+  let fun get_hand(cs, hand, moves) = 
+          case (moves) of
+               [] => score(hand, goal)
+             | Draw::rest
+                  =>  (case cs of
+                            []       => score(hand, goal)
+                          | card::tl => if (sum_cards hand) > goal
+                                        then score(hand, goal)
+                                        else get_hand(tl, card::hand, rest))
+
+             | (Discard card)::rest
+                  => get_hand(cs, remove_card(cs, card, IllegalMove), rest) 
+
+  in
+    get_hand(cs, [], moves)
+
+  end
 
 
 
