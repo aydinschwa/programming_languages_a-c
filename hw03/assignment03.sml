@@ -67,12 +67,32 @@ fun longest_capitalized(strs) =
     (longest_string1 o only_capitals) strs
 
 (* Problem 6 *)
-(* Write a function rev_string that takes a string and returns the string that
-* is the same characters in reverse order. Use ML’s o operator, the library
-* function rev for reversing lists, and two library functions in the String
-* module. (Browse the module documentation to find the most useful functions.)
-* *)
 fun rev_string(str) = 
-    
+    (String.implode o List.rev o String.explode) str    
 
+(* Problem 7 *)
+fun first_answer func some_list = 
+    case some_list of
+         []       => raise NoAnswer
+       | elem::tl => if isSome (func elem)
+                     then func elem 
+                     else first_answer func tl
+
+
+(* Problem 8 *)
+fun all_answers func some_list =
+    let
+        fun all_help some_list acc =
+            case some_list of
+                 []       => SOME acc 
+               | elem::tl => let val ans = func elem
+                             in 
+                                if null ans then NONE
+                                else all_help tl (ans@acc)
+                             end                             
+    in
+        all_help some_list [] 
+    end
+
+(* Problem 9 *)
 
