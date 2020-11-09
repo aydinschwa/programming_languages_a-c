@@ -46,15 +46,15 @@ fun get_substitutions2(lolon, name) =
 (* feels pretty inelegant. try to fix later *)
 fun similar_names(lolon, {first=f, middle=m, last=l}) = 
   let 
-      val first= [{first=f, middle=m, last=l}]
-      val lon = get_substitutions1(lolon, f) 
+      val first = [{first=f, middle=m, last=l}]
+      val lon = get_substitutions1(lolon, f)
       fun mklist(lon, {first=f, middle=m, last=l}) =
-        case lon of
-             [] => []
-           | name::tl => ({first=name, middle=m, last=l})::mklist(tl, {first=f,
-                           middle=m, last=l})
+          case lon of
+               [] => []
+             | name::tl => ({first=name, middle=m, last=l})::mklist(tl, {first=f,
+                             middle=m, last=l})
   in case lon of
-          [] => []
+          [] => first 
         | name::_ => first@mklist(lon, {first=name, middle=m, last=l})
   end
 
@@ -133,12 +133,6 @@ fun score(cs, goal) =
 
 
 (* Problem 2g *)
-(* Write a function officiate, which “runs a game.” It takes a card list (the
-* card-list) a move list (what the player “does” at each point), and an int (the
-* goal) and returns the score at the end of the game after processing (some or
-* all of) the moves in the move list in order. Use a locally defined recursive
-* helper function that takes several arguments that together represent the
-* current state of the game.*)
 fun officiate(cs, moves, goal) =
 
   let fun get_hand(cs, hand, moves) = 
@@ -160,10 +154,65 @@ fun officiate(cs, moves, goal) =
   end
 
 
+(********************* Problem 3 *********************) 
 
 
+(* Problem 3a *)
+fun score_challenge(cs, goal) = 
+  let 
+      (* Create list of aces in the hand *)
+      fun check_ace(cs, aces) = 
+          case cs of
+               []       => aces
+             | card::tl => if (card_value card) = 11
+                           then check_ace(tl, card::aces)
+                           else check_ace(tl, aces)
+
+      (* Recursively replaces Aces with Num 1, comparing with 
+      *  prior best score to find optimal amount of Num 1's *)
+      fun possible_score(new_score, hand, aces) = 
+        case aces of
+             []      => new_score
+           | (suit, Ace)::tl => let 
+                                  val new_hand = (suit, Num 1)::remove_card(hand,
+                                  (suit, Ace), IllegalMove)
+                                  val temp_score = score(new_hand, goal)
+                              in 
+                                 if temp_score < new_score 
+                                 then possible_score(temp_score, new_hand, tl)
+                                 else possible_score(new_score, new_hand, tl)
+                              end
+
+      val aces = check_ace(cs, [])
+      val new_score = score(cs, goal)
+  in
+   possible_score(new_score, cs, aces)
+  end
+
+(* Replaced score with score_challenge *)
+fun officiate_challenge(cs, moves, goal) =
+
+  let fun get_hand(cs, hand, moves) = 
+          case (moves) of
+               [] => score_challenge(hand, goal)
+             | Draw::rest
+                  =>  (case cs of
+                            []       => score_challenge(hand, goal)
+                          | card::tl => if (sum_cards hand) > goal
+                                        then score_challenge(hand, goal)
+                                        else get_hand(tl, card::hand, rest))
+
+             | (Discard card)::rest
+                  => get_hand(cs, remove_card(cs, card, IllegalMove), rest) 
+
+  in
+    get_hand(cs, [], moves)
+
+  end
 
 
+(* Problem 3b *)
+(*fun careful_player(cs, goal) = *)
 
 
 
