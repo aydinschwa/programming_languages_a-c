@@ -2,30 +2,6 @@
 
 exception NoAnswer
 
-datatype pattern = Wildcard
-		 | Variable of string
-		 | UnitP
-		 | ConstP of int
-		 | TupleP of pattern list
-		 | ConstructorP of string * pattern
-
-datatype valu = Const of int
-	      | Unit
-	      | Tuple of valu list
-	      | Constructor of string * valu
-
-fun g f1 f2 p =
-    let 
-	val r = g f1 f2 
-    in
-	case p of
-	    Wildcard          => f1 ()
-	  | Variable x        => f2 x
-	  | TupleP ps         => List.foldl (fn (p,i) => (r p) + i) 0 ps
-	  | ConstructorP(_,p) => r p
-	  | _                 => 0
-    end
-
 (**** for the challenge problem only ****)
 
 datatype typ = Anything
@@ -94,5 +70,62 @@ fun all_answers func some_list =
         all_help some_list [] 
     end
 
-(* Problem 9 *)
+
+(******************** Next Section *******************)
+
+datatype pattern = Wildcard
+		 | Variable of string
+		 | UnitP
+		 | ConstP of int
+		 | TupleP of pattern list
+		 | ConstructorP of string * pattern
+
+datatype valu = Const of int
+	      | Unit
+	      | Tuple of valu list
+	      | Constructor of string * valu
+
+fun g f1 f2 p =
+    let 
+	val r = g f1 f2 
+    in
+	case p of
+	    Wildcard          => f1 ()
+	  | Variable x        => f2 x
+	  | TupleP ps         => List.foldl (fn (p,i) => (r p) + i) 0 ps
+	  | ConstructorP(_,p) => r p
+	  | _                 => 0
+    end
+
+
+(* Problem 9a *)
+fun count_wildcards(pat) = 
+    g (fn x => 1) (fn x => 0) pat
+
+
+(* Problem 9b *)
+fun count_wild_and_variable_lengths(pat) = 
+    g (fn x => 1) (fn x => String.size x) pat
+
+
+(* Problem 9c *)
+fun count_some_var(str, pat)= 
+    g (fn x => 0) (fn x => if x = str then 1 else 0) pat
+
+
+(* Problem 10 *)
+(* Write a function check_pat that takes a pattern and returns true if and only
+* if all the variables appearing in the pattern are distinct from each other
+* (i.e., use different strings). The constructor names are not relevant. Hints:
+* The sample solution uses two helper functions. The first takes a pattern and
+* returns a list of all the strings it uses for variables. Using foldl with a
+* function that uses @ is useful in one case. The second takes a list of strings
+* and decides if it has repeats. List.exists may be useful. Sample solution is
+* 15 lines. These are hints: We are not requiring foldl and List.exists here,
+* but they make it easier. *)
+fun check_pat(pat) = 
+    let
+        fun string_list acc
+
+
 
