@@ -114,18 +114,41 @@ fun count_some_var(str, pat)=
 
 
 (* Problem 10 *)
-(* Write a function check_pat that takes a pattern and returns true if and only
-* if all the variables appearing in the pattern are distinct from each other
-* (i.e., use different strings). The constructor names are not relevant. Hints:
-* The sample solution uses two helper functions. The first takes a pattern and
-* returns a list of all the strings it uses for variables. Using foldl with a
-* function that uses @ is useful in one case. The second takes a list of strings
-* and decides if it has repeats. List.exists may be useful. Sample solution is
-* 15 lines. These are hints: We are not requiring foldl and List.exists here,
-* but they make it easier. *)
 fun check_pat(pat) = 
-    let
-        fun string_list acc
+    let fun str_list(pat, acc) =
+            case pat of
+                Variable v => v::acc  
+              | TupleP ps  => List.foldl str_list acc ps
+              | ConstructorP(_,p) => str_list(p, acc)
+              | _ => []
+    
+        fun repeats(strlist, acc) = 
+            case strlist of
+                 [] => acc
+               | str::tl => if List.exists (fn x => x = str) acc
+                            then repeats(tl, acc)
+                            else repeats(tl, str::acc)
+
+        val all_names = str_list(pat, [])
+        val sub_names = repeats(all_names, [])
+    in
+      if List.length all_names = List.length sub_names
+      then true
+      else false 
+    end
+
+
+(* Problem 11 *)
+(* Write a function match that takes a valu * pattern and returns a (string *
+* valu) list option, namely NONE if the pattern does not match and SOME lst
+* where lst is the list of bindings if it does. Note that if the value matches
+* but the pattern has no patterns of the form Variable s, then the result is
+* SOME []. Hints: Sample solution has one case expression with 7 branches. The
+* branch for tuples uses all_answers and ListPair.zip. Sample solution is 13
+* lines. Remember to look above for the rules for what patterns match what
+* values, and what bindings they produce. These are hints: We are not requiring
+* all_answers and ListPair.zip here, but they make it easier. *)
+
 
 
 
