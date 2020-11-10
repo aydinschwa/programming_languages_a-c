@@ -50,9 +50,9 @@ fun rev_string(str) =
 fun first_answer func some_list = 
     case some_list of
          []       => raise NoAnswer
-       | elem::tl => if isSome (func elem)
-                     then func elem 
-                     else first_answer func tl
+       | elem::tl => case func elem of 
+                     SOME el => el
+                   | NONE => first_answer func tl
 
 
 (* Problem 8 *)
@@ -63,8 +63,9 @@ fun all_answers func some_list =
                  []       => SOME acc 
                | elem::tl => let val ans = func elem
                              in 
-                                if null ans then NONE
-                                else all_help tl (ans@acc)
+                               case ans of
+                                    SOME ans => all_help tl (ans@acc)
+                                  | NONE => NONE
                              end                             
     in
         all_help some_list [] 
@@ -117,10 +118,10 @@ fun count_some_var(str, pat)=
 fun check_pat(pat) = 
     let fun str_list(pat, acc) =
             case pat of
-                Variable v => v::acc  
-              | TupleP ps  => List.foldl str_list acc ps
+                Variable v        => v::acc  
+              | TupleP ps         => List.foldl str_list acc ps
               | ConstructorP(_,p) => str_list(p, acc)
-              | _ => []
+              | _                 => []
     
         fun repeats(strlist, acc) = 
             case strlist of
@@ -139,16 +140,31 @@ fun check_pat(pat) =
 
 
 (* Problem 11 *)
-(* Write a function match that takes a valu * pattern and returns a (string *
-* valu) list option, namely NONE if the pattern does not match and SOME lst
-* where lst is the list of bindings if it does. Note that if the value matches
-* but the pattern has no patterns of the form Variable s, then the result is
-* SOME []. Hints: Sample solution has one case expression with 7 branches. The
-* branch for tuples uses all_answers and ListPair.zip. Sample solution is 13
-* lines. Remember to look above for the rules for what patterns match what
-* values, and what bindings they produce. These are hints: We are not requiring
-* all_answers and ListPair.zip here, but they make it easier. *)
+fun match (v, pat) =
+    case (v, pat) of
+             (_, Wildcard)        => SOME [] 
+           | (v, Variable s)      => SOME [(s,v)] 
+           | (Unit, UnitP)        => SOME []
+           | (Const v, ConstP i)  => if v = i then SOME [] else NONE
+           | (Tuple v, TupleP l)  => if List.length v = List.length l
+                                     then all_answers match (ListPair.zip(v, l))
+                                     else NONE
+           |(Constructor (s1, v), 
+            ConstructorP (s2, p)) => if s1 = s2 
+                                     then match(v, p) 
+                                     else NONE
+           | (_, _)               => NONE
 
+
+(* Problem 12 *)
+(* Write a function first_match that takes a value and a list of patterns and returns a
+(string * valu) list option, namely NONE if no pattern in the list matches or
+SOME lst where lst is the list of bindings for the first pattern in the list
+that matches. Use first_answer and a handle-expression. Hints: Sample solution
+is 3 lines. *)
+fun first_match v pat_list =
+    SOME (first_answer (fn pat => match(v, pat)) pat_list)
+    handle NoAnswer => NONE
 
 
 
