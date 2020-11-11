@@ -149,7 +149,7 @@ fun splitAt num_list cut =
     let
         fun aux num_list pos neg =
             case num_list of
-                 [] => (List.rev pos, List.rev neg)
+                 [] => (List.rev neg, List.rev pos)
                | num::tl => if num >= cut
                             then aux tl (num::pos) neg
                             else aux tl pos (num::neg)
@@ -166,15 +166,63 @@ fun isSorted ints =
 
 
 (* Problem 17 *)
-fun isAnySorted ints =
+fun isAnySorted ints  =
     let fun aux ints f = 
         case ints of
-            num1::num2::tl => true andalso aux (num2::tl)
-          | num::tl => true
-          | [] => true
+           num1::num2::rest => (f (num1, num2)) andalso (aux (num2::rest) f)
+           | _ => true
     in
-        aux ints (fn (x,y) => x >= y)
+        if aux ints (fn (x,y) => x >= y)
+        then true
+        else if aux ints (fn(x,y) => x <= y)
+        then true
+        else false
     end
+
+
+(* Problem 18 *)
+fun sortedMerge il1 il2 =
+    case (il1, il2) of
+        ([], []) => []
+      | (val1::tl1, val2::tl2) => if val1 < val2 
+                                  then val1::(sortedMerge tl1 (val2::tl2))
+                                  else val2::(sortedMerge (val1::tl1) tl2)
+    
+      | (val1::tl1, []) => val1::(sortedMerge tl1 [])
+      | ([], val2::tl2) => val2::(sortedMerge tl2 [])
+
+
+(* Problem 19 *)
+(* fun qsort ints = *)
+
+
+
+(* Problem 20 *)
+fun divide ints =
+    let fun aux ints acc1 acc2 =
+        case ints of
+             [] => (List.rev acc1, List.rev acc2)
+           | num1::num2::tl => aux tl (num1::acc1) (num2::acc2)
+           | num1::[] => (List.rev (num1::acc1), List.rev acc2)
+    in
+        aux ints [] []
+    end
+
+
+(* Problem 21 *)
+fun not_so_quick_sort ints =
+    case ints of
+         [] => []
+       | num::[]=> [num]
+       | num1::num2::tl => let val (l1, l2) = divide(num1::num2::tl)
+                           in sortedMerge (not_so_quick_sort l1) (not_so_quick_sort l2)
+                           end
+   
+
+(* Problem 22 26 *)
+(* The prompt for these questions doesn't make sense to me *)
+
+        
 
 
 
