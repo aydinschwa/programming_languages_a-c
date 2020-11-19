@@ -26,7 +26,7 @@
                     (if (= n 0)
                         ans
                         (aux (cdr eval) (- n 1) (cons (car eval) ans)))))])
-    (aux stream n null)))
+    (reverse (aux stream n null))))
 
 ; Problem 5
 (define funny-number-stream
@@ -70,7 +70,17 @@
     (f v vec 0)))
 
 ; Problem 10
-
+(define (cached-assoc xs n)
+  (let ([cache (make-vector n #f)]
+        [next 0])
+  (if (vector-assoc n cache)
+      (lambda(x) (vector-assoc x cache))
+      (begin
+        (vector-set! cache next (assoc n xs))
+        (set! next (modulo (+ 1 next) n))
+        (lambda(x) (vector-assoc x cache))))))
+      
+  
 
  
                         
