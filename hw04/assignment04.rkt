@@ -15,8 +15,8 @@
 
 ; Problem 3
 (define (list-nth-mod xs n)
-  (cond [(empty? xs) raise "list-nth-mod: empty list"]
-        [(negative? n) raise "list-nth-mod: negative number"]
+  (cond [(empty? xs) raise (error "list-nth-mod: empty list")]
+        [(negative? n) raise (error "list-nth-mod: negative number")]
         [#t (list-ref xs (remainder n (length xs)))]))
 
 ; Problem 4
@@ -60,25 +60,32 @@
 
 ; Problem 9
 (define (vector-assoc v vec)
+  (if (vector-empty? vec) #f
   (letrec ([f (lambda(v vec n)
     (let ([curr (vector-ref vec n)])
-       (cond [(equal? (vector-length vec) (+ 1 n)) #f]
+       (cond [(equal? (vector-length vec) (- n 1)) #f]
              [(pair? curr) (if (equal? v (car curr))
                             curr
                             (f v vec (+ 1 n)))]
              [#t (f v vec (+ 1 n))])))])
-    (f v vec 0)))
+    (f v vec 0))))
 
 ; Problem 10
 (define (cached-assoc xs n)
   (let ([cache (make-vector n #f)]
         [next 0])
-  (if (vector-assoc n cache)
-      (lambda(x) (vector-assoc x cache))
-      (begin
-        (vector-set! cache next (assoc n xs))
-        (set! next (modulo (+ 1 next) n))
-        (lambda(x) (vector-assoc x cache))))))
+  (lambda (x)
+    (if (vector-assoc x cache)
+        (vector-assoc x cache)
+        (let ([tf (assoc x xs)])
+          (if tf
+              (begin
+                (vector-set! cache next (assoc x xs))
+                (set! next (modulo (+ 1 next) n))
+                tf)
+              #f)))(begin (print cache)))))
+
+; Problem 11
       
   
 
