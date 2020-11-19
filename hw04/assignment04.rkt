@@ -28,12 +28,6 @@
                         (aux (cdr eval) (- n 1) (cons (car eval) ans)))))])
     (aux stream n null)))
 
-(define ones (lambda() (cons 1 ones)))
-
-(define nats
-  (letrec ([f (lambda(x) (cons x (lambda() (f (+ x 1)))))])
-    (lambda() (f 1))))
-
 ; Problem 5
 (define funny-number-stream
   (letrec ([f (lambda(x) (cons x (lambda()
@@ -44,10 +38,45 @@
 
 ; Problem 6
 (define dan-then-dog
+  (letrec ([f (lambda(x n) (cons x (lambda()
+                                   (if (= 1 (modulo n 2))
+                                       (f "dog.jpg" (+ 1 n))
+                                       (f "dan.jpg" (+ 1 n))))))])
+    (lambda() (f "dan.jpg" 1))))
+
+; Problem 7
+(define (stream-add-zero stream)
+  (lambda()
+    (let ([st (stream)])
+      (cons (cons 0 (car st)) (stream-add-zero(cdr st))))))
+
+; Problem 8
+(define (cycle-lists xs ys)
+  (letrec ([f (lambda(xs ys n)
+                (let ([x (list-nth-mod xs n)]
+                      [y (list-nth-mod ys n)])
+                  (cons (cons x y) (lambda() (f xs ys (+ 1 n))))))])
+    (lambda() (f xs ys 0))))
+
+; Problem 9
+(define (vector-assoc v vec)
+  (letrec ([f (lambda(v vec n)
+    (let ([curr (vector-ref vec n)])
+       (cond [(equal? (vector-length vec) (+ 1 n)) #f]
+             [(pair? curr) (if (equal? v (car curr))
+                            curr
+                            (f v vec (+ 1 n)))]
+             [#t (f v vec (+ 1 n))])))])
+    (f v vec 0)))
+
+; Problem 10
 
 
-  
+ 
+                        
+                                  
 
+              
 
 
 
