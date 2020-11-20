@@ -63,7 +63,7 @@
   (if (vector-empty? vec) #f
   (letrec ([f (lambda(v vec n)
     (let ([curr (vector-ref vec n)])
-       (cond [(equal? (vector-length vec) (- n 1)) #f]
+       (cond [(equal? (vector-length vec) (+ n 1)) #f]
              [(pair? curr) (if (equal? v (car curr))
                             curr
                             (f v vec (+ 1 n)))]
@@ -83,9 +83,8 @@
                 (vector-set! cache next (assoc x xs))
                 (set! next (modulo (+ 1 next) n))
                 tf)
-              #f)))(begin (print cache)))))
+              #f))))))
 
-; Problem 11
 
   
 
