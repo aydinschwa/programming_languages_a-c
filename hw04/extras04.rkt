@@ -47,16 +47,7 @@
 (define (interleave streamlist)
   (letrec ([aux (lambda(streamlist n)
                   (let* ([select (modulo n (length streamlist))]
-                         [sel-stream (list-ref streamlist select)])
-                    (begin
-                      (list-set streamlist select (cdr (sel-stream)))
-                      (cons (car (sel-stream)) (lambda() (aux streamlist (+ 1 n)))))))])
+                         [sel-stream (list-ref streamlist select)]
+                         [new-list (list-set streamlist select (cdr (sel-stream)))])
+                      (cons (car (sel-stream)) (lambda() (aux new-list (+ 1 n))))))])
     (lambda() (aux streamlist 0))))
-
-(define nats
-  (letrec ([f (lambda(x) (cons x (lambda() (f (+ 1 x)))))])
-    (lambda() (f 1))))
-          
-                    
-(define x (interleave (list nats)))
-(stream-for-n-steps x 4)
