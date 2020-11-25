@@ -60,7 +60,8 @@
 
 ; Problem 9
 (define (vector-assoc v vec)
-  (if (vector-empty? vec) #f
+  (if (equal? (vector-length vec) 0)
+      #f
   (letrec ([f (lambda(v vec n)
     (let ([curr (vector-ref vec n)])
        (cond [(equal? (vector-length vec) (+ n 1)) #f]
@@ -69,6 +70,7 @@
                             (f v vec (+ 1 n)))]
              [#t (f v vec (+ 1 n))])))])
     (f v vec 0))))
+
 
 ; Problem 10
 (define (cached-assoc xs n)
