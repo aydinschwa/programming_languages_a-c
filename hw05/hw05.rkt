@@ -58,25 +58,28 @@
         [(ifgreater? e)
          (let ([comp1 (eval-under-env (ifgreater-e1 e) env)]
                [comp2 (eval-under-env (ifgreater-e2 e) env)]
-               [ans1 (eval-under-env (ifgreater-e3 e) env)]
-               [ans2 (eval-under-env (ifgreater-e4 e) env)])
+               [ans1 (eval-under-env (ifgreater-e3 e) env)])
+               ; I have no idea why, but this breaks if I create ans2
+               ;[ans2 (eval-under-env (ifgreater-e4 e) env)])
            (if (and (int? comp1) (int? comp2))
                 (if (> (int-num comp1) (int-num comp2))
                     ans1
-                    ans2)
+                    (eval-under-env (ifgreater-e4 e) env))
                 (error "MUPL ifgreater applied to non-number")))]
         [(fun? e)
          (closure env e)]
         [(call? e)
-         (let* ([close (call-funexp e)]
-                [fun (closure-fun close)]
-                [val (call-actual e)])
+         (let ([close (eval-under-env (call-funexp e) env)]
+               [val (eval-under-env (call-actual e) env)])
            (if (closure? close)
-               (let* ([arg (fun-formal fun)]
-                     [body (fun-body fun)]
-                     [add-env1 (cons arg val)]
-                     [add-env2 (cons (fun-nameopt fun) env)])
-                 (eval-under-env body (append (cons add-env1 add-env2) env)))
+               (let* ([fun (closure-fun close)]
+                      [close-env (closure-env close)]
+                      [body (fun-body fun)]
+                      [add-env (cons (cons (fun-formal fun) val) close-env)]
+                      [add-env-opt (cons (cons (fun-nameopt fun) close) add-env)])
+                 (if (fun-nameopt fun)
+                     (eval-under-env body add-env-opt)
+                     (eval-under-env body add-env)))
                (error "call was not passed a function closure")))]
         [(mlet? e)
          (let* ([var-val (eval-under-env (mlet-e e) env)]
@@ -87,12 +90,12 @@
                [cdr (eval-under-env (apair-e2 e) env)])
            (apair car cdr))]
         [(fst? e)
-         (if (apair? (fst-e e))
-             (eval-under-env (apair-e1 (fst-e e)) env)
+         (if (apair? (eval-under-env (fst-e e) env))
+             (apair-e1 (eval-under-env (fst-e e) env))
              (error "Called fst on non-pair"))]
         [(snd? e)
-         (if (apair? (snd-e e))
-             (eval-under-env (apair-e2 (snd-e e)) env)
+         (if (apair? (eval-under-env (snd-e e) env))
+             (apair-e2 (eval-under-env (snd-e e) env))
              (error "Called snd on non-pair"))]
         [(aunit? e) e]
         [(isaunit? e)
@@ -123,10 +126,17 @@
 
 ;; Problem 4
 
-;;(define mupl-map (
-
-;;(define mupl-mapAddN 
-  ;;(mlet "map" mupl-map
-        ;;"CHANGE (notice map is now in MUPL scope)"))
+(define mupl-map
+  (fun #f "apply"
+       (fun "map" "list"
+            (ifaunit (var "list")
+                     (aunit)
+                     (apair (call (var "apply") (fst (var "list"))) (call (var "map") (snd (var "list"))))))))
+   
+(define mupl-mapAddN 
+  (mlet "map" mupl-map
+        (fun #f "int"
+             (fun #f "list"
+                  (call (call (var "map") (fun #f "elem" (add (var "int") (var "elem")))) (var "list"))))))
 
 
