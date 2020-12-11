@@ -199,7 +199,7 @@ fun eval_prog (e,env) =
       | Shift(dx, dy, exp) => case eval_prog(exp, env) of
                                     NoPoints => exp
                                   | Point(x, y) => Point(x + dx, y + dy)
-                                  | Line(m, b) => Line(m, (b + dx - (m * dx)))
+                                  | Line(m, b) => Line(m, (b + dy - (m * dx)))
                                   | VerticalLine x => VerticalLine (x+dx)
                                   | LineSegment(x1, y1, x2, y2) =>
                                       LineSegment(x1+dx, y1+dy, x2+dx, y2+dy)
@@ -214,7 +214,8 @@ fun preprocess_prog exp =
                                        else if (real_close(x1, x2) andalso (y1 >
                                                  y2))
                                             then LineSegment(x1, y2, x2, y1)
-                                            else if (x1 > x2)
+                                            else if ((x1 > x2) andalso
+                                            not (real_close(x1, x2)))
                                                  then LineSegment(x2, y2, x1,
                                                  y1)
                                                  else LineSegment(x1, y1, x2,
