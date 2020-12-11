@@ -127,29 +127,37 @@ class Point < GeometryValue
   end
 
   def intersectPoint p
-    if real_close_point(p, self)
+    if real_close_point(p.x, p.y, x, y)
       Point.new(p.x, p.y)
     else
-      NoPoints
+      NoPoints.new
     end
   end
 
   def intersectLine line
     if real_close(y, (line.m * x + line.b))
-    then self
-    else NoPoints
+     self
+    else NoPoints.new
     end
   end
 
   def intersectVerticalLine vline
     if real_close(vline.x, x)
-    then self
-    else NoPoints
+     self
+    else NoPoints.new
     end
   end
 
   def intersectWithSegmentAsLineResult seg
-    #TODO: the hard case
+    if inbetween(x, seg.x1, seg.x2) && inbetween(y, seg.y1, seg.y2)
+      self
+    else NoPoints.new
+    end
+  end
+
+  def inbetween(v, end1, end2)
+    ((end1 - GeometryExpression::Epsilon <= v) && (v <= end2 + GeometryExpression::Epsilon)) ||
+    ((end2 - GeometryExpression::Epsilon <= v) && (v <= end1 + GeometryExpression::Epsilon))
   end
 
 end
@@ -164,7 +172,7 @@ class Line < GeometryValue
   end
 
   def shift(dx, dy)
-    Line.new(m, (b + dx - (m * dx)))
+    Line.new(m, (b + dy - (m * dx)))
   end
 
   def intersect other
@@ -173,13 +181,14 @@ class Line < GeometryValue
 
   def intersectPoint p
     p.intersectLine self
+  end
 
   def intersectLine line
     if real_close(m, line.m)
-    then (if real_close(b, line.b)
-          then self
-          else NoPoints
-          end)
+      (if real_close(b, line.b)
+        self
+       else NoPoints.new
+       end)
     else
       x = (line.b - b) / (m - line.m)
       y = m * x + b
@@ -191,8 +200,8 @@ class Line < GeometryValue
     Point.new(vline.x, m * vline.x + b)
   end
 
-  def intersectWithLineSegmentAsLineResult seg
-    #TODO: harddd
+  def intersectWithSegmentAsLineResult seg
+    seg
   end
 
 end
@@ -223,13 +232,13 @@ class VerticalLine < GeometryValue
 
   def intersectVerticalLine vline
     if real_close(x, vline.x)
-    then self
-    else NoPoints
+     self
+    else NoPoints.new
     end
   end
 
-  def intersectWithLineSegmentAsLineResult seg
-    #TODO: harddd
+  def intersectWithSegmentAsLineResult seg
+    seg
   end
 
 end
@@ -264,6 +273,51 @@ class LineSegment < GeometryValue
     # Shouldn't mutate the object according to instructions, just create a new one
     LineSegment.new(x1 + dx, y1 + dy, x2 + dx, y2 + dy)
   end
+
+  def intersect other
+    other.intersectLineSegment self
+  end
+
+  def intersectPoint p
+    p.intersectLineSegment self
+  end
+
+  def intersectLine line
+    line.intersectLineSegment self
+  end
+
+  def intersectVerticalLine vline
+    vline.intersectLineSegment self
+  end
+
+  def intersectWithSegmentAsLineResult seg
+    seg1 = [x1, y1, x2, y2]
+    seg2 = [seg.x1, seg.y1, seg.x2, seg.y2]
+    if real_close(x1, x2)
+      aXstart, aYstart, aXend, aYend,
+      bXstart, bYstart, bXend, bYend = y1 < seg.y1 ? seg1 + seg2 : seg2 + seg1
+        if real_close(aYend, bYstart)
+          Point.new(aYend, bYstart)
+        elsif aYend < bYstart
+          NoPoints.new
+        elsif aYend > bYend
+          LineSegment.new(bXstart, bYstart, bXend, bYend)
+        else LineSegment.new(bXstart, bYstart, aXend, aYend)
+        end
+    else
+      aXstart, aYstart, aXend, aYend,
+      bXstart, bYstart, bXend, bYend = x1 < seg.x1 ? seg1 + seg2 : seg2 + seg1
+      if real_close(aXend, bXstart)
+        Point.new(aXend, aYend)
+      elsif aXend < bXstart
+        NoPoints.new
+      elsif aXend > bXend
+        LineSegment.new(bXstart, bYstart, bXend, bYend)
+      else LineSegment.new(bXstart, bYstart, aXend, aYend)
+      end
+    end
+  end
+
 end
 
 # Note: there is no need for getter methods for the non-value classes
@@ -281,7 +335,9 @@ class Intersect < GeometryExpression
   end
 
   def eval_prog env
-    @e1.intersect @e2
+    e1_eval = @e1.eval_prog env
+    e2_eval = @e2.eval_prog env
+    e1_eval.intersect e2_eval
   end
 end
 
@@ -301,8 +357,8 @@ class Let < GeometryExpression
 
   # the append method mutates environment, use + [] instead
   def eval_prog env
-    new_env = env + [@s, @e1.eval_prog]
-    @e2.eval_prog new_env 
+    new_env = [[@s, @e1.eval_prog(env)]] + env
+    @e2.eval_prog new_env
   end
 
 end
@@ -313,10 +369,17 @@ class Var < GeometryExpression
   def initialize s
     @s = s
   end
+
   def eval_prog env # remember: do not change this method
     pr = env.assoc @s
     raise "undefined variable" if pr.nil?
     pr[1]
+  end
+
+  # This is supposed to inherit from the GeometryExpression superclass,
+  # but it doesn't for some reason so I'm just writing it here.
+  def preprocess_prog
+    self
   end
 end
 
